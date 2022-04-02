@@ -17,6 +17,8 @@ static const char * tokenNames_[] = {
 	"'ELSE'",
 	"'FI'",
 	"'WHILE'",
+    "'BREAK'",
+    "'CONTINUE'",
 	"'DO'",
 	"'OD'",
 	"'WRITE'",

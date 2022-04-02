@@ -10,7 +10,7 @@ using namespace std;
 enum Token {
 	T_EOF,			// Конец текстового потока
 	T_ILLEGAL,		// Признак недопустимого символа
-	T_IDENTIFIER,		// Идентификатор
+	T_IDENTIFIER,	// Идентификатор
 	T_NUMBER,		// Целочисленный литерал
 	T_BEGIN,		// Ключевое слово "begin"
 	T_END,			// Ключевое слово "end"
@@ -29,7 +29,9 @@ enum Token {
 	T_CMP,			// Сводная лексема для операторов отношения
 	T_LPAREN,		// Открывающая скобка
 	T_RPAREN,		// Закрывающая скобка
-	T_SEMICOLON		// ";"
+	T_SEMICOLON,	// ";"
+    T_BREAK,        // Ключевое слово "break"
+    T_CONTINUE      // Ключевое слово "continue"
 };
 
 // Функция tokenToString возвращает описание лексемы.
@@ -76,6 +78,8 @@ public:
 		keywords_["od"] = T_OD;
 		keywords_["write"] = T_WRITE;
 		keywords_["read"] = T_READ;
+        keywords_["break"] = T_BREAK;
+        keywords_["continue"] = T_CONTINUE;
 
 		nextChar();
 	}
