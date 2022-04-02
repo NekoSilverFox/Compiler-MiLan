@@ -1,0 +1,11 @@
+BEGIN
+
+	n := read;
+	x := 1;
+
+	WHILE x <= n DO
+		x := x + 1
+	OD;
+
+	write(x)
+END
