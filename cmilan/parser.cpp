@@ -141,15 +141,32 @@ void Parser::statement()
 		codegen_->emitAt(jumpNoAddress, JUMP_NO, codegen_->getCurrentAddress());
 	}
 #if 1
-    /**
+    /** - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
      * 实现 `BREAK` 的思想：
      *  `BREAK` 的效果实际上和 `WHILE` 循环的条件不成立的效果一致，所以根据虚拟机的原理将实现 `BREAK` 分为了 3 步：
      *      1. 向栈中（当前语句后方） PUSH 一个 0，以作为 COMPARE 为 FALSE 的结果（Лекция 5, стр 10）
      *      2. 紧接着向栈中增加无条件跳转语句 JUMP，跳转至 WHILE 循环判断不成立处（JUMP_NO）
      *      3. 继续向后进行词素分析
+     *
+     * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+     * 写在 отчет 里的：
+     * 实现运算符 `BREAK` 的思想：
+     *   运算符 `BREAK` 的效果实际上和 `WHILE` 循环的条件不成立的效果一致，所以根据虚拟机的原理将实现 `BREAK` 分为了 6 步：
+     *      1. 在运算符列表中增加 BREAK
+     *      2. 增加存储 WHILE 语句开始（条件判断处之后那条语句）及结束（退出）地址的暂存区的
+     *      3. 在检测到 WHILE 循环时将其开始和结束的地址保存
+     *      4. 在检测到 BREAK 且 WHILE 也存在时，向栈中（当前语句后方） PUSH 一个 0，以作为 COMPARE 为 FALSE 的结果，否则报错
+     *      5. 紧接着向栈中增加无条件跳转语句 JUMP，跳转至 WHILE 循环判断不成立处（JUMP_NO）
+     *      6. 继续向后进行词素分析
+     *  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
      */
     else if (match(T_BREAK))
     {
+        if (-1 == this->whileBreakAddress_)
+        {
+            reportError("[ERROR] No `WHILE` match found for `BREAK`");
+            return;
+        }
         // 1. 向栈中（当前语句后方） PUSH 一个 0，以作为 COMPARE 为 FALSE 的结果（Лекция 5, стр 10）
         int cmpFalse = codegen_->reserve();
         codegen_->emitAt(cmpFalse, PUSH, 0);
@@ -172,6 +189,12 @@ void Parser::statement()
     */
     else if (match(T_CONTINUE))
     {
+        if (-1 == this->whileContinueAddress_)
+        {
+            reportError("[ERROR] No `WHILE` match found for `CONTINUE`");
+            return;
+        }
+
         // 1. 向栈中（当前语句后方） PUSH 一条无条件跳转指令 JUMP，跳转至 WHILE 开始处，重新进行条件判断
         int jumpAddress = codegen_->reserve();
         codegen_->emitAt(jumpAddress, JUMP, this->whileContinueAddress_);
@@ -188,7 +211,7 @@ void Parser::statement()
 		codegen_->emit(PRINT);
 	}
 	else {
-		reportError("statement expected.");
+		reportError("[ERROR] Statement expected.");
 	}
 }
 
@@ -333,7 +356,7 @@ void Parser::relation()
 		};
 	}
 	else {
-		reportError("comparison operator expected.");
+		reportError("[ERROR] Comparison operator expected.");
 	}
 }
 

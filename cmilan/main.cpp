@@ -17,7 +17,7 @@ int main(int argc, char** argv)
 	}
 
 	ifstream input;
-        input.open(argv[1]);
+    input.open(argv[1]);
 
 	if(input) {
 		Parser p(argv[1], input);

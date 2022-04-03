@@ -54,12 +54,13 @@ public:
 	//    const string& fileName - имя файла с программой для анализа
 	//
 	// Конструктор создает экземпляры лексического анализатора и генератора.
-
 	Parser(const string& fileName, istream& input)
 		: output_(cout), error_(false), recovered_(true), lastVar_(0)
 	{
 		scanner_ = new Scanner(fileName, input);
 		codegen_ = new CodeGen(output_);
+        this->whileBreakAddress_ = -1;
+        this->whileContinueAddress_ = -1;
 		next();
 	}
 
@@ -128,6 +129,7 @@ private:
 	bool recovered_; //не используется
 	VarTable variables_; //массив переменных, найденных в программе
 	int lastVar_; //номер последней записанной переменной
+
     int whileContinueAddress_;  // 记录 while 循环开始处地址
     int whileBreakAddress_;  // 记录 while 循环结束的地址
 };

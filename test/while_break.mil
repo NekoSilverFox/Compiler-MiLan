@@ -1,21 +1,21 @@
 BEGIN
 
-	n := read;
-	x := 0;
-	test := 111;
+	max := read;
+	i := 0;
+	i_not_change := 111;
 
-	WHILE x <= n DO
-		x := x + 1;
-		write(x);
+	WHILE i < max DO
+		i := i + 1;
+		write(i);
 
-		IF x = 2 THEN
+		IF i = 2 THEN
 			BREAK
-			test := 222
+			i_not_change := 222
 		FI
 
 		
 	OD;
 
-	write(x);
-	write(test)
+	write(i);
+	write(i_not_change)
 END

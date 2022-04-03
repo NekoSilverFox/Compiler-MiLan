@@ -1,0 +1,9 @@
+BEGIN
+
+	n := read;
+	x := 1;
+
+	BREAK
+
+	write(x)
+END
