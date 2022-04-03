@@ -128,6 +128,8 @@ private:
 	bool recovered_; //не используется
 	VarTable variables_; //массив переменных, найденных в программе
 	int lastVar_; //номер последней записанной переменной
+    int whileContinueAddress_;  // 记录 while 循环开始处地址
+    int whileBreakAddress_;  // 记录 while 循环结束的地址
 };
 
 #endif

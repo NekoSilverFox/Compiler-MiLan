@@ -36,6 +36,7 @@ enum Token {
 
 // Функция tokenToString возвращает описание лексемы.
 // Используется при печати сообщения об ошибке.
+// tokenToString函数返回对令牌的描述。在打印错误信息时使用
 const char * tokenToString(Token t);
 
 // Виды операций сравнения
@@ -57,7 +58,6 @@ enum Arithmetic {
 };
 
 // Лексический анализатор
-
 class Scanner
 {
 public:
@@ -75,11 +75,11 @@ public:
 		keywords_["fi"] = T_FI;
 		keywords_["while"] = T_WHILE;
 		keywords_["do"] = T_DO;
+        keywords_["break"] = T_BREAK;
+        keywords_["continue"] = T_CONTINUE;
 		keywords_["od"] = T_OD;
 		keywords_["write"] = T_WRITE;
 		keywords_["read"] = T_READ;
-        keywords_["break"] = T_BREAK;
-        keywords_["continue"] = T_CONTINUE;
 
 		nextChar();
 	}
@@ -126,7 +126,7 @@ public:
 
 	// Переход к следующей лексеме.
 	// Текущая лексема записывается в token_ и изымается из потока.
-	void nextToken();	
+	void nextToken();
 private:
 
 	// Пропуск всех пробельные символы. 

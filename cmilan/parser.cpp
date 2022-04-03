@@ -43,7 +43,7 @@ void Parser::statementList()
 		bool more = true;
 		while(more) {
 			statement();
-			more = match(T_SEMICOLON);
+			more = match(T_SEMICOLON);  // `;`
 		}
 	}
 }
@@ -68,7 +68,7 @@ void Parser::statement()
 	if(see(T_IDENTIFIER)) {
 		int varAddress = findOrAddVariable(scanner_->getStringValue());
 		next();
-		mustBe(T_ASSIGN);
+		mustBe(T_ASSIGN);  // `:=`
 		expression();
 		codegen_->emit(STORE, varAddress);
 	}
@@ -121,14 +121,16 @@ void Parser::statement()
 		// Запоминаем адрес начала проверки условия.
         // 条件检查的起始地址
 		int conditionAddress = codegen_->getCurrentAddress();
+        this->whileContinueAddress_ = conditionAddress;
 		relation();  // 条件解析
 
 		// Резервируем место под инструкцию условного перехода для выхода из цикла.
         // 为退出 WHILE 循环的条件性跳转指令保留空间
 		int jumpNoAddress = codegen_->reserve();
+        this->whileBreakAddress_ = jumpNoAddress;
 		mustBe(T_DO);
 		statementList();
-		mustBe(T_OD);
+        mustBe(T_OD);
 
 		// Переходим по адресу проверки условия
         // 转到条件检查地址，其中 JUMP 为无条件跳转
@@ -138,6 +140,37 @@ void Parser::statement()
         // 如果不满足条件即跳出循环：用循环后的运算符上的条件跳转指令填入保留地址。
 		codegen_->emitAt(jumpNoAddress, JUMP_NO, codegen_->getCurrentAddress());
 	}
+#if 1
+    /**
+     * 实现 `BREAK` 的思想：
+     *  `BREAK` 的效果实际上和 `WHILE` 循环的条件不成立的效果一致，所以根据虚拟机的原理将实现 `BREAK` 分为了 2 步：
+     *      1. 向栈中（当前语句后方） PUSH 一个 0，以作为 COMPARE 为 FALSE 的结果（Лекция 5, стр 10）
+     *      2. 紧接着向栈中增加无条件跳转语句 JUMP，跳转至 WHILE 循环判断不成立处（JUMP_NO）
+     *      3. 继续向后进行词素分析
+     */
+    else if (match(T_BREAK))
+    {
+        // 1. 向栈中（当前语句后方） PUSH 一个 0，以作为 COMPARE 为 FALSE 的结果（Лекция 5, стр 10）
+        int cmpFalse = codegen_->reserve();
+        codegen_->emitAt(cmpFalse, PUSH, 0);
+
+        // 2. 紧接着向栈中增加无条件跳转语句 JUMP，跳转至 WHILE 循环判断不成立处（JUMP_NO）
+        int jumpAddress = codegen_->reserve();
+        codegen_->emitAt(jumpAddress, JUMP, this->whileBreakAddress_);
+
+        // 3. 继续向后进行语句分析
+        statementList();
+    }
+#endif
+    // 【+】如果识别到 continue 就跳转到 while 的头部
+//    if (match(T_CONTINUE))
+//    {
+//        //int jumpAddress = codegen_->reserve();
+//        codegen_->emit(JUMP, this->whileContinueAddress_);
+//        relation();
+//    }
+//
+
 
 	else if(match(T_WRITE)) {
 		mustBe(T_LPAREN);
