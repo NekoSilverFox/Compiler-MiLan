@@ -143,7 +143,7 @@ void Parser::statement()
 #if 1
     /**
      * 实现 `BREAK` 的思想：
-     *  `BREAK` 的效果实际上和 `WHILE` 循环的条件不成立的效果一致，所以根据虚拟机的原理将实现 `BREAK` 分为了 2 步：
+     *  `BREAK` 的效果实际上和 `WHILE` 循环的条件不成立的效果一致，所以根据虚拟机的原理将实现 `BREAK` 分为了 3 步：
      *      1. 向栈中（当前语句后方） PUSH 一个 0，以作为 COMPARE 为 FALSE 的结果（Лекция 5, стр 10）
      *      2. 紧接着向栈中增加无条件跳转语句 JUMP，跳转至 WHILE 循环判断不成立处（JUMP_NO）
      *      3. 继续向后进行词素分析
@@ -162,15 +162,24 @@ void Parser::statement()
         statementList();
     }
 #endif
-    // 【+】如果识别到 continue 就跳转到 while 的头部
-//    if (match(T_CONTINUE))
-//    {
-//        //int jumpAddress = codegen_->reserve();
-//        codegen_->emit(JUMP, this->whileContinueAddress_);
-//        relation();
-//    }
-//
 
+#if 1
+    /**
+    * 实现 `CONTINUE` 的思想：
+    *    `CONTINUE` 的效果为跳转到 WHILE 循环条件判断处，所以根据虚拟机的原理将实现 `CONTINUE` 分为了 2 步：
+    *      1. 向栈中（当前语句后方） PUSH 一条无条件跳转指令 JUMP，跳转至 WHILE 开始处，重新进行条件判断
+    *      2. 继续向后进行词素分析
+    */
+    else if (match(T_CONTINUE))
+    {
+        // 1. 向栈中（当前语句后方） PUSH 一条无条件跳转指令 JUMP，跳转至 WHILE 开始处，重新进行条件判断
+        int jumpAddress = codegen_->reserve();
+        codegen_->emitAt(jumpAddress, JUMP, this->whileContinueAddress_);
+
+        // 2. 继续向后进行语句分析
+        statementList();
+    }
+#endif
 
 	else if(match(T_WRITE)) {
 		mustBe(T_LPAREN);

@@ -1,0 +1,19 @@
+BEGIN
+
+	n := read;
+	x := 0;
+	test := 111;
+
+	WHILE x < n DO
+		x := x + 1;
+		write(x);
+
+		CONTINUE
+
+		test := 222
+
+	OD;
+
+	write(x);
+	write(test)
+END
