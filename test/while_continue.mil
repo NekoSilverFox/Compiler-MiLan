@@ -1,19 +1,17 @@
 BEGIN
-
-	n := read;
-	x := 0;
+	max := 5;
+	i := 0;
 	test := 111;
 
-	WHILE x < n DO
-		x := x + 1;
-		write(x);
+	WHILE i < max DO
+		i := i + 1;
+		write(i);
 
 		CONTINUE
 
 		test := 222
-
 	OD;
 
-	write(x);
+	write(i);
 	write(test)
 END

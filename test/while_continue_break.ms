@@ -1,4 +1,4 @@
-0:	INPUT
+0:	PUSH	5
 1:	STORE	0
 2:	PUSH	0
 3:	STORE	1

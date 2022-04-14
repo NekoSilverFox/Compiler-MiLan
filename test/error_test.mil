@@ -1,9 +1,10 @@
 BEGIN
-
-	n := read;
+	max := 5;
 	x := 1;
 
 	BREAK
 
-	write(x)
+	WHILE x < max DO
+		write(x)
+	OD
 END

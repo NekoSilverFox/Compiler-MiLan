@@ -1,8 +1,7 @@
 BEGIN
-
-	max := read;
+	max := 5;
 	i := 0;
-	i_not_change := 111;
+	test := 111;
 
 	WHILE i < max DO
 		i := i + 1;
@@ -10,12 +9,10 @@ BEGIN
 
 		IF i = 2 THEN
 			BREAK
-			i_not_change := 222
+			test := 222
 		FI
-
-		
 	OD;
 
 	write(i);
-	write(i_not_change)
+	write(test)
 END
