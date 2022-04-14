@@ -25,13 +25,66 @@
   </br>
   <b><b>Санкт-Петербургский государственный политехнический университет</b></br></b>
   <b>Институт компьютерных наук и технологий</b>
-  <h1 align="center"></h1>
  </p>
  <p align="center"></p>
+
 </p>
 
 <div align=left>
 <!-- SPbSTU 最后一行 -->
+
+
+# 编译及执行
+
+## 编译 MiLan编译器
+
+使用 Makefile 进行编译，进入带有 MiLan 编译器源代码的文件夹（cmilan），使用以下 `make` 命令进行编译。生成的编译器名为 `cmilan` 二进制可执行文件
+
+
+
+Makefile 内容：
+
+```makefile
+CFLAGS	= -Wall -W -Werror -O2 -Wextra -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-unused-private-field -Wno-unused-label
+LDFLAGS	=
+
+HEADERS	= scanner.h \
+	  parser.h \
+	  codegen.h
+
+OBJS	= main.o \
+	  codegen.o \
+	  scanner.o \
+	  parser.o \
+	  
+EXE	= cmilan
+
+$(EXE): $(OBJS) $(HEADERS)
+	$(CXX) $(LDFLAGS) -o $@ $(OBJS)
+
+.cpp.o:
+	$(CXX) $(CFLAGS) -c $< -o $@
+
+clean:
+	-@rm -f $(EXE) $(OBJS)
+
+
+```
+
+
+
+## 将 MiLan 代码编译为虚拟机汇编代码
+
+**MiLan 代码编写的文件，应该以 `.mil` 为文件后缀存储**
+
+在获得编译器二进制可执行文件 `cmilan` 后，使用 `./cmilan FILENAME.mil` 可生成 MiLan 虚拟机汇编代码。也可使用 `./cmilan FILENAME.mil > FILENAME.ms` 将生成的 MiLan 虚拟机汇编代码写入到文件中
+
+
+
+## 使用 MiLan 虚拟机执行汇编代码
+
+存放虚拟机的文件夹为 `mvm`，虚拟机为内部名为 `mvm` 的二进制文件。使用 `./mvm FILENAME.ms` 可执行汇编代码
+
 
 
 
