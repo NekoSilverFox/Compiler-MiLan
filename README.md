@@ -68,7 +68,6 @@ $(EXE): $(OBJS) $(HEADERS)
 clean:
 	-@rm -f $(EXE) $(OBJS)
 
-
 ```
 
 
@@ -83,7 +82,7 @@ clean:
 
 ## 使用 MiLan 虚拟机执行汇编代码
 
-存放虚拟机的文件夹为 `mvm`，虚拟机为内部名为 `mvm` 的二进制文件。使用 `./mvm FILENAME.ms` 可执行汇编代码
+存放虚拟机的文件夹为 `vm`，虚拟机为内部名为 `mvm` 的二进制文件。使用 `./mvm FILENAME.ms` 可执行汇编代码
 
 
 

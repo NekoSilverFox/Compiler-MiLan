@@ -1,0 +1,20 @@
+BEGIN
+
+	n := read;
+	x := 1;
+
+	/* 
+		If the input value is greater than 5, the output will be 111111 after another loop
+	 */
+	IF n > 5 THEN
+		WHILE x != n DO
+			x := x + 1;
+
+			IF x = n THEN
+				WRITE(111111)
+			FI
+		OD
+	FI;
+
+	write(x)
+END

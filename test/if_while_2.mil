@@ -1,0 +1,23 @@
+BEGIN
+
+	max1 := 5;
+	max2 := 10;
+
+	/* 
+		Outputs 5 to 1, as well as 2 times of them 
+	*/
+	WHILE 0 < max1 DO
+
+		WHILE 0 < max2 DO
+
+			IF 2 * max1 = max2 THEN
+				write(max1);
+				write(max2)
+			FI;
+
+			max1 := max1 - 1;
+			max2 := max2 - 2
+
+		OD
+	OD
+END
