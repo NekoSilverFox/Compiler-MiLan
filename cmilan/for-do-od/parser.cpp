@@ -152,16 +152,20 @@ void Parser::statement()
             reportError("[ERROR] `FOR` should be followed by the variable");
             return;
         }
-        int firstVarAddress = findOrAddVariable(scanner_->getStringValue());  // 初始变量名的位置
+        string startValueName = scanner_->getStringValue();
+        int firstVarAddress = findOrAddVariable(startValueName);  // 初始变量名的位置
         next();
         mustBe(T_ASSIGN);  // `:=`
         expression();
         codegen_->emit(STORE, firstVarAddress);
 
+        // 开始检测逗号后面的值，知道借测不到逗号
         queue<int> parts;
         while (match(T_COMMA))
         {
-            int varAddress = findOrAddVariable(scanner_->getStringValue());  // 变量名的位置
+            int varAddress = findOrAddVariable(startValueName);  // 变量名的位置
+//            int varAddress = findOrAddVariable(scanner_->getIntValue() + 1);  // 变量名的位置
+
             expression();
             codegen_->emit(STORE, varAddress);
             parts.push(varAddress);
@@ -176,8 +180,9 @@ void Parser::statement()
 
         if (!parts.empty())
         {
-            firstVarAddress = parts.front();
-            codegen_->emit(JUMP, conditionAddress);
+            int nextVarAddress = parts.front();
+            parts.pop();
+            codegen_->emit(JUMP, nextVarAddress);
         }
         else
         {

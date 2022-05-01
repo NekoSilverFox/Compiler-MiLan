@@ -59,10 +59,10 @@ private:
 	typedef map<string, int> VarTable;
 	//описание блоков.
 	void program(); //Разбор программы. BEGIN statementList END
-	void statementList(); // Разбор списка операторов.
-	void statement(); //разбор оператора.
-	void expression(); //разбор арифметического выражения.
-	void term(); //разбор слагаемого.
+	void statementList(); // Разбор списка операторов. 解析运算符的列表
+	void statement(); //разбор оператора. 解析运算符
+	void expression(); //разбор арифметического выражения. 解析一个算术表达式。
+	void term(); //разбор слагаемого. 求和
 	void factor(); //разбор множителя.
 	void relation(); //разбор условия.
 
