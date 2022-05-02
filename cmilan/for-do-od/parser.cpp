@@ -141,12 +141,27 @@ void Parser::statement()
 	}
 
     /*********************************************************************************************************************************/
-
+/**--------------------------------------------------------------------------------------------------------------
+ * 实现想法：
+ *  1. 将 `FOR` 加入到运算符列表
+ *  2. 判断 FOR 后面紧接的符号是不是 `:=`，如果不是则记录错误信息
+ *  3. 增加一个表达式计数器（countExp），以便记录 `FOR :=` 后面表达式的数量
+ *  4. 开始检测 `FOR :=` 后面的表达式，并将检测到的表达式将推入到栈中。并将第二步中的表达式计数器（countExp）的值加一
+ *  5. 重复第 3 步，直到`FOR :=` 后面以逗号为分割的所有表达式都被推入到了栈中
+ *  6. 将表达式计数器（countExp）此时的值保存
+ *  7. 开始 FOR 循环，每次 FOR 循环结束就将表达式计数器（countExp）的值减一
+ *  8. 判断表达式计数器（countExp）的值是否为零，如果为零代表 FOR 循环结束；如果不为零则开始 FOR 循环的下一次迭代
+ *
+ * --------------------------------------------------------------------------------------------------------------
+ */
     else if (match(T_FOR))
     {
         /**
          * 判断 FOR 后面是不是 :=
          * FOR 后面一个应该是 `变量 := ...`
+         *
+         * Определите, если за FOR следует :=
+         * После FOR должно быть `variable := ... `
          */
         if (!see(T_IDENTIFIER))  // FOR 后面的变量
         {
@@ -157,6 +172,9 @@ void Parser::statement()
         /**
          * 记录 FOR 后面表达式的个数 vmCountExp（即为 FOR 的循环次数）
          * 以下为初始化 vmCountExp 为 0
+         *
+         * Запишите количество выражений, следующих за FOR vmCountExp (т.е. количество циклов FOR).
+         * Следующая команда инициализирует vmCountExp значением 0
          */
         int vmCountExp = this->lastVar_;  // mvm 中的 FOR-表达式计数器
         this->lastVar_++;
@@ -166,6 +184,8 @@ void Parser::statement()
 
         /**
          * startValueName 也就是 FOR 头部 `:=` 左边的那个变量
+         *
+         * startValueName, которая является переменной слева от `:=` в заголовке FOR
          */
         string startValueName = scanner_->getStringValue();
         int firstVarAddress = findOrAddVariable(startValueName);  // 初始变量名的位置
@@ -175,14 +195,20 @@ void Parser::statement()
 
         /**
          * 检测到首个表达式，将表达式数量 +1 并保存
+         *
+         * Первое выражение обнаружено, количество выражений равно +1 и сохранено
          */
         countExp++;
 
 
         /**
-         * 开始检测逗号后面的值，知道检测不到逗号
+         * 开始检测逗号后面的值，直到检测不到逗号
          * 将检测到的新值全部放入到栈中
          * 并将表达式数量++ 并保存
+         *
+         * Начинайте определять значение после запятой до тех пор, пока запятая не будет обнаружена
+         * Поместите все обнаруженные новые значения в стек
+         * и сохранить количество выражений ++ и сохранить
          */
         while (match(T_COMMA))
         {
@@ -195,11 +221,15 @@ void Parser::statement()
 
         /**
          * 记录 FOR 循环开始的地方
+         *
+         * Запишите место начала цикла FOR
          */
         int conditionAddress = codegen_->getCurrentAddress();
 
         /**
          * 判断 FOR 后面的表达式是否全部耗尽
+         *
+         * Определите, исчерпаны ли все выражения после FOR
          */
         codegen_->emitAt(codegen_->reserve(), PUSH, 0);
         codegen_->emitAt(codegen_->reserve(), LOAD, vmCountExp);
@@ -207,21 +237,26 @@ void Parser::statement()
 
         /**
          * 为退出 FOR 循环的条件性跳转指令保留空间
+         *
+         * Зарезервируйте место для инструкции условного перехода для выхода из цикла FOR
          */
         int jumpNoAddress = codegen_->reserve();
         codegen_->emitAt(jumpNoAddress, NOP);
 
         /**
          * 每当 FOR 后面的表达式消耗掉一个（FOR 循环执行完成一次），就将 FOR-表达式计数器 减一
+         *
+         * Каждый раз, когда выражение, следующее за FOR, потребляется (цикл FOR завершается один раз), счетчик FOR-выражений уменьшается на единицу
          */
         codegen_->emitAt(codegen_->reserve(), LOAD, vmCountExp);
         codegen_->emitAt(codegen_->reserve(), PUSH, 1);  // 向栈中推入当前 FOR 循环后表达式个数
         codegen_->emitAt(codegen_->reserve(), SUB);  // 向栈中推入当前 FOR 循环后表达式个数
         codegen_->emitAt(codegen_->reserve(), STORE, vmCountExp);  // 向栈中推入当前 FOR 循环后表达式个数
 
-        //
         /**
          * 在 FOR 循环开始之前，将栈顶部的变量值（表达式）加载
+         *
+         * Загрузите значения переменных (выражений) на вершину стека перед началом цикла FOR
          */
         codegen_->emit(STORE, firstVarAddress);
 
@@ -234,6 +269,8 @@ void Parser::statement()
 
         /**
          * 如果 FOR 后面的表达式全部完毕，就将 FOR 循环退出
+         *
+         * Выйти из цикла FOR, если все выражения после FOR завершены
          */
         int stopForAddress = codegen_->reserve();
         codegen_->emitAt(jumpNoAddress, JUMP_YES, stopForAddress);

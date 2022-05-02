@@ -35,7 +35,7 @@ enum Token {
 	T_CMP,			// Сводная лексема для операторов отношения
 	T_LPAREN,		// Открывающая скобка
 	T_RPAREN,		// Закрывающая скобка
-	T_SEMICOLON,		// ";"
+	T_SEMICOLON,	// ";"
     T_COMMA         // 逗号
 };
 
@@ -62,7 +62,6 @@ enum Arithmetic {
 };
 
 // Лексический анализатор
-
 class Scanner
 {
 public:
