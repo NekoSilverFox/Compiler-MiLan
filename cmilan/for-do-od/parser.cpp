@@ -144,7 +144,10 @@ void Parser::statement()
 
     else if (match(T_FOR))
     {
-        // FOR 后面一个应该是 `变量 := ...`
+        /**
+         * 判断 FOR 后面是不是 :=
+         * FOR 后面一个应该是 `变量 := ...`
+         */
         if (!see(T_IDENTIFIER))  // FOR 后面的变量
         {
             reportError("[ERROR] `FOR` should be followed by the variable");
@@ -155,9 +158,9 @@ void Parser::statement()
          * 记录 FOR 后面表达式的个数 vmCountExp（即为 FOR 的循环次数）
          * 以下为初始化 vmCountExp 为 0
          */
-        int vmCountExp = this->lastVar_;
+        int vmCountExp = this->lastVar_;  // mvm 中的 FOR-表达式计数器
         this->lastVar_++;
-        int countExp = 0;
+        int countExp = 0;  // FOR-表达式计数器（用于在语法解析阶段判断 FOR 后面表达式的数量，只会将最终的值送入到 mvm）
         codegen_->emitAt(codegen_->reserve(), PUSH, countExp);  // 向栈中推入当前 FOR 循环后表达式个数
         codegen_->emitAt(codegen_->reserve(), STORE, vmCountExp);  // 向栈中推入当前 FOR 循环后表达式个数
 
@@ -174,8 +177,6 @@ void Parser::statement()
          * 检测到首个表达式，将表达式数量 +1 并保存
          */
         countExp++;
-//        codegen_->emitAt(codegen_->reserve(), PUSH, countExp);  // 向栈中推入当前 FOR 循环后表达式个数
-//        codegen_->emitAt(codegen_->reserve(), STORE, vmCountExp);  // 向栈中推入当前 FOR 循环后表达式个数
 
 
         /**
@@ -192,31 +193,36 @@ void Parser::statement()
         codegen_->emitAt(codegen_->reserve(), PUSH, countExp);  // 向栈中推入当前 FOR 循环后表达式个数
         codegen_->emitAt(codegen_->reserve(), STORE, vmCountExp);  // 向栈中推入当前 FOR 循环后表达式个数
 
-
-        // FOR 循环开始的地方
+        /**
+         * 记录 FOR 循环开始的地方
+         */
         int conditionAddress = codegen_->getCurrentAddress();
-
-//        // 为退出 FOR 循环的条件性跳转指令保留空间
-//        int jumpNoAddress = codegen_->reserve();
 
         /**
          * 判断 FOR 后面的表达式是否全部耗尽
          */
         codegen_->emitAt(codegen_->reserve(), PUSH, 0);
         codegen_->emitAt(codegen_->reserve(), LOAD, vmCountExp);
-        codegen_->emitAt(codegen_->reserve(), COMPARE, 0); // TODO
-        // 为退出 FOR 循环的条件性跳转指令保留空间
-        int jumpNoAddress = codegen_->reserve();
-        codegen_->emitAt(jumpNoAddress, JUMP_NO); // TODO
+        codegen_->emitAt(codegen_->reserve(), COMPARE, 0);
 
+        /**
+         * 为退出 FOR 循环的条件性跳转指令保留空间
+         */
+        int jumpNoAddress = codegen_->reserve();
+        codegen_->emitAt(jumpNoAddress, NOP);
+
+        /**
+         * 每当 FOR 后面的表达式消耗掉一个（FOR 循环执行完成一次），就将 FOR-表达式计数器 减一
+         */
         codegen_->emitAt(codegen_->reserve(), LOAD, vmCountExp);
-        codegen_->emitAt(codegen_->reserve(), PUSH, -1);  // 向栈中推入当前 FOR 循环后表达式个数
+        codegen_->emitAt(codegen_->reserve(), PUSH, 1);  // 向栈中推入当前 FOR 循环后表达式个数
         codegen_->emitAt(codegen_->reserve(), SUB);  // 向栈中推入当前 FOR 循环后表达式个数
         codegen_->emitAt(codegen_->reserve(), STORE, vmCountExp);  // 向栈中推入当前 FOR 循环后表达式个数
 
-
-
-        // 在 FOR 循环开始之前，将栈顶部的变量值加载
+        //
+        /**
+         * 在 FOR 循环开始之前，将栈顶部的变量值（表达式）加载
+         */
         codegen_->emit(STORE, firstVarAddress);
 
         mustBe(T_DO);
@@ -226,9 +232,11 @@ void Parser::statement()
 
         codegen_->emit(JUMP, conditionAddress);
 
-//        // 为退出 FOR 循环的条件性跳转指令保留空间
+        /**
+         * 如果 FOR 后面的表达式全部完毕，就将 FOR 循环退出
+         */
         int stopForAddress = codegen_->reserve();
-        codegen_->emitAt(jumpNoAddress, JUMP_NO, stopForAddress);
+        codegen_->emitAt(jumpNoAddress, JUMP_YES, stopForAddress);
     }
 
     /*********************************************************************************************************************************/
