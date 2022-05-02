@@ -1,0 +1,9 @@
+BEGIN
+
+	i := 666;
+	j := 777;
+
+	FOR x := 1, 3, 5 DO
+		WRITE(x)
+	OD
+END
