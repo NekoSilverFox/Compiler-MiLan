@@ -144,7 +144,7 @@ void Parser::statement()
     {
         //запоминаем адрес начала проверки условия.
         // 条件检查的起始地址
-        int conditionAddress = codegen_->getCurrentAddress();
+//        int conditionAddress = codegen_->getCurrentAddress();
 
         // FOR 后面一个应该是 `变量 :=`
         if (!see(T_IDENTIFIER))  // FOR 后面的变量
@@ -152,42 +152,60 @@ void Parser::statement()
             reportError("[ERROR] `FOR` should be followed by the variable");
             return;
         }
+
         string startValueName = scanner_->getStringValue();
         int firstVarAddress = findOrAddVariable(startValueName);  // 初始变量名的位置
         next();
         mustBe(T_ASSIGN);  // `:=`
         expression();
-        codegen_->emit(STORE, firstVarAddress);
+//        codegen_->emit(STORE, firstVarAddress);
 
-        // 开始检测逗号后面的值，知道借测不到逗号
+
+        /** 开始检测逗号后面的值，知道检测不到逗号
+         * 将检测到的新值全部放入到栈中
+         */
         queue<int> parts;
         while (match(T_COMMA))
         {
-            int varAddress = findOrAddVariable(startValueName);  // 变量名的位置
+//            int varAddress = findOrAddVariable(startValueName);  // 变量名的位置
 //            int varAddress = findOrAddVariable(scanner_->getIntValue() + 1);  // 变量名的位置
 
             expression();
-            codegen_->emit(STORE, varAddress);
-            parts.push(varAddress);
+//            codegen_->emit(STORE, firstVarAddress);
+            parts.push(firstVarAddress);
         }
 
+
+        // for 循环开始的地方
+        int conditionAddress = codegen_->getCurrentAddress();
+
         // 为退出 FOR 循环的条件性跳转指令保留空间
-        int jumpNoAddress = codegen_->reserve();
+//        int jumpNoAddress = codegen_->reserve();
+
+
+
+        // 在 FOR 循环开始之前，将栈顶部的变量值加载
+        codegen_->emit(STORE, firstVarAddress);
 
         mustBe(T_DO);
         statementList();
         mustBe(T_OD);
 
-        if (!parts.empty())
-        {
-            int nextVarAddress = parts.front();
-            parts.pop();
-            codegen_->emit(JUMP, nextVarAddress);
-        }
-        else
-        {
-            codegen_->emit(JUMP, jumpNoAddress);
-        }
+//        if (!parts.empty())
+//        {
+//            int nextVarAddress = parts.front();
+//            parts.pop();
+//            codegen_->emit(JUMP, nextVarAddress);
+//        }
+//        else
+//        {
+//            codegen_->emit(JUMP, jumpNoAddress);
+//        }
+//        codegen_->emit(STORE, firstVarAddress);
+        codegen_->emit(JUMP, conditionAddress);
+
+        // 为退出 FOR 循环的条件性跳转指令保留空间
+        int jumpNoAddress = codegen_->reserve();
     }
 
 
