@@ -140,47 +140,79 @@ void Parser::statement()
 		codegen_->emitAt(jumpNoAddress, JUMP_NO, codegen_->getCurrentAddress());
 	}
 
+    /*********************************************************************************************************************************/
+
     else if (match(T_FOR))
     {
-        //запоминаем адрес начала проверки условия.
-        // 条件检查的起始地址
-//        int conditionAddress = codegen_->getCurrentAddress();
-
-        // FOR 后面一个应该是 `变量 :=`
+        // FOR 后面一个应该是 `变量 := ...`
         if (!see(T_IDENTIFIER))  // FOR 后面的变量
         {
             reportError("[ERROR] `FOR` should be followed by the variable");
             return;
         }
 
+        /**
+         * 记录 FOR 后面表达式的个数 vmCountExp（即为 FOR 的循环次数）
+         * 以下为初始化 vmCountExp 为 0
+         */
+        int vmCountExp = this->lastVar_;
+        this->lastVar_++;
+        int countExp = 0;
+        codegen_->emitAt(codegen_->reserve(), PUSH, countExp);  // 向栈中推入当前 FOR 循环后表达式个数
+        codegen_->emitAt(codegen_->reserve(), STORE, vmCountExp);  // 向栈中推入当前 FOR 循环后表达式个数
+
+        /**
+         * startValueName 也就是 FOR 头部 `:=` 左边的那个变量
+         */
         string startValueName = scanner_->getStringValue();
         int firstVarAddress = findOrAddVariable(startValueName);  // 初始变量名的位置
         next();
         mustBe(T_ASSIGN);  // `:=`
         expression();
-//        codegen_->emit(STORE, firstVarAddress);
 
-
-        /** 开始检测逗号后面的值，知道检测不到逗号
-         * 将检测到的新值全部放入到栈中
+        /**
+         * 检测到首个表达式，将表达式数量 +1 并保存
          */
-        queue<int> parts;
+        countExp++;
+//        codegen_->emitAt(codegen_->reserve(), PUSH, countExp);  // 向栈中推入当前 FOR 循环后表达式个数
+//        codegen_->emitAt(codegen_->reserve(), STORE, vmCountExp);  // 向栈中推入当前 FOR 循环后表达式个数
+
+
+        /**
+         * 开始检测逗号后面的值，知道检测不到逗号
+         * 将检测到的新值全部放入到栈中
+         * 并将表达式数量++ 并保存
+         */
         while (match(T_COMMA))
         {
-//            int varAddress = findOrAddVariable(startValueName);  // 变量名的位置
-//            int varAddress = findOrAddVariable(scanner_->getIntValue() + 1);  // 变量名的位置
-
             expression();
-//            codegen_->emit(STORE, firstVarAddress);
-            parts.push(firstVarAddress);
+            countExp++;
+
         }
+        codegen_->emitAt(codegen_->reserve(), PUSH, countExp);  // 向栈中推入当前 FOR 循环后表达式个数
+        codegen_->emitAt(codegen_->reserve(), STORE, vmCountExp);  // 向栈中推入当前 FOR 循环后表达式个数
 
 
-        // for 循环开始的地方
+        // FOR 循环开始的地方
         int conditionAddress = codegen_->getCurrentAddress();
 
-        // 为退出 FOR 循环的条件性跳转指令保留空间
+//        // 为退出 FOR 循环的条件性跳转指令保留空间
 //        int jumpNoAddress = codegen_->reserve();
+
+        /**
+         * 判断 FOR 后面的表达式是否全部耗尽
+         */
+        codegen_->emitAt(codegen_->reserve(), PUSH, 0);
+        codegen_->emitAt(codegen_->reserve(), LOAD, vmCountExp);
+        codegen_->emitAt(codegen_->reserve(), COMPARE, 0); // TODO
+        // 为退出 FOR 循环的条件性跳转指令保留空间
+        int jumpNoAddress = codegen_->reserve();
+        codegen_->emitAt(jumpNoAddress, JUMP_NO); // TODO
+
+        codegen_->emitAt(codegen_->reserve(), LOAD, vmCountExp);
+        codegen_->emitAt(codegen_->reserve(), PUSH, -1);  // 向栈中推入当前 FOR 循环后表达式个数
+        codegen_->emitAt(codegen_->reserve(), SUB);  // 向栈中推入当前 FOR 循环后表达式个数
+        codegen_->emitAt(codegen_->reserve(), STORE, vmCountExp);  // 向栈中推入当前 FOR 循环后表达式个数
 
 
 
@@ -191,25 +223,18 @@ void Parser::statement()
         statementList();
         mustBe(T_OD);
 
-//        if (!parts.empty())
-//        {
-//            int nextVarAddress = parts.front();
-//            parts.pop();
-//            codegen_->emit(JUMP, nextVarAddress);
-//        }
-//        else
-//        {
-//            codegen_->emit(JUMP, jumpNoAddress);
-//        }
-//        codegen_->emit(STORE, firstVarAddress);
+
         codegen_->emit(JUMP, conditionAddress);
 
-        // 为退出 FOR 循环的条件性跳转指令保留空间
-        int jumpNoAddress = codegen_->reserve();
+//        // 为退出 FOR 循环的条件性跳转指令保留空间
+        int stopForAddress = codegen_->reserve();
+        codegen_->emitAt(jumpNoAddress, JUMP_NO, stopForAddress);
     }
 
+    /*********************************************************************************************************************************/
 
-	else if(match(T_WRITE)) {
+
+    else if(match(T_WRITE)) {
 		mustBe(T_LPAREN);
 		expression();
 		mustBe(T_RPAREN);
