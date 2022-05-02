@@ -1,9 +1,0 @@
-BEGIN
-
-	n := 7;
-
-	IF n > 5 THEN
-		write(n)
-	FI
-
-END
